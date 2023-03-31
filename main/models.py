@@ -35,3 +35,19 @@ class Order(models.Model):
 
     def __str__(self):
         return self.author.email
+    
+    
+class MyOrders(models.Model):
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    author_id = models.IntegerField(max_length=50, blank=False, null=False)
+    author_name = models.CharField(max_length=50, blank=False, null=False)
+    author_email = models.CharField(max_length=50, blank=False, null=False)
+
+    post_id = models.IntegerField(max_length=50, blank=False, null=False)
+    post_title = models.CharField(max_length=50, blank=False, null=False)
+    post_desc = models.TextField()
+    post_amount = models.DecimalField(max_digits=9, decimal_places=2, default=99, null=False, blank=False)
+
+    total = models.DecimalField(max_digits=10, decimal_places=2, default=99, null=False, blank=False)    

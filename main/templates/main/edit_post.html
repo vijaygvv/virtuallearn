@@ -5,47 +5,28 @@
 {% block content %}
 
 
-<form method="POST" class="post-form" action="/updatepost/{{post.id}}">  
+<form method="POST" class="post-form" action="/updatepost/{{post.id}}/">  
     {% csrf_token %}  
-      <div class="container" align="center">  
-        <br>  
-        <div class="form-group row">  
-          <label class="col-sm-1 col-form-label"></label>  
-          <div class="col-sm-4">  <h3>Update Details</h3>  </div>  
-        </div>  
-        <div class="form-group row">  
-        <label class="col-sm-2 col-form-label">Post Title :</label>  
-        <div class="col-sm-4">  
-        <input type="text" name="post_id" id="id_post_id" required maxlength="20" value="{{ course.title }}"/>  
-        </div>  
-        </div>  
-        <div class="form-group row">  
-        <label class="col-sm-2 col-form-label">Course Description:</label>  
-        <div class="col-sm-4">  
-        <input type="text" name="description" id="id_description" required maxlength="100" value="{{ course.description }}" />  
-        </div>  
-        </div>  
-        <div class="form-group row">  
-        <label class="col-sm-2 col-form-label">Course Price:</label>  
-        <div class="col-sm-4">  
-        <input type="number" name="amount" id="id_amount" required maxlength="254" value="{{ course.amount }}" />  
-        </div>  
-        </div>  
-        <br>
-        <div class="form-group row">  
-        <label class="col-sm-1 col-form-label"></label>  
+      <div class="container">  
+        <div class="mb-3 mt-3">
+          <label for="id_title" text-align="left">Title</label>
+          <input type="text" name="title" maxlength="200" class="textinput form-control" value="{{post.title}}">
+        </div>
+        <div class="mb-3 mt-3">
+          <label for="id_description" text-align="left">Description</label>
+          <input type="textarea" name="description" maxlength="200" class="textinput form-control" value="{{post.description}}">
+        </div>
+        <div class="mb-3 mt-3">
+          <label for="id_amount" text-align="left">Amount</label>
+          <input type="number" name="amount" maxlength="200" class="textinput form-control" value="{{post.amount}}">
+        </div>
+
+        <div class="form-group row" align="right">  
         <div class="col-sm-4">  
         <button type="submit" class="btn btn-success">Update</button>  
-        <button type="submit"><a href="/"> Cancel</a></button>  
-        </div>  
+        <button type="submit"><a href="/mypost"> Cancel</a></button>  
         </div>  
       </div>  
     </form>  
 
-<hr>
-<br>
-<form method="post">
-  {% csrf_token %}{{form|crispy}}
-  <button type="submit"  name='update_post' class="btn btn-success">Post</button>
-</form>
 {% endblock %}
