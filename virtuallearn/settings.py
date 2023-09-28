@@ -130,6 +130,8 @@ STATIC_URL = 'static/'
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
+STATICFILES_DIRS = [BASE_DIR / 'static']
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
@@ -137,3 +139,5 @@ LOGIN_REDIRECT_URL = '/home'
 LOGOUT_REDIRECT_URL = '/login'
 
 
+STRIPE_SECRET_KEY = "sk_test_51MnyXZSC6obXlfoCaf6gpb8gVcA2BeOsSvR4fCQOW7bIYgX9vxLqpRl9ZUiREEHFhsyCPWsRyfUZ1Q5ECG3RMkSU00zBSCBNjc"
+STRIPE_PUBLISHABLE_KEY = "pk_test_51MnyXZSC6obXlfoCDJdmXnxMSTg2Ep0vbYOvaIwY8kjE5Q56ieHqrQLe3dTk629VFdg2azqHC2kVnUoX15E6NeF900wWNrCrFs"

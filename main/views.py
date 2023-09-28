@@ -1,28 +1,19 @@
-from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from .forms import RegisterForm, PostForm
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.models import User, Group
 from .models import Post, Cart, Order
-import datetime, math
+import datetime
 
 from django.db.models import Sum
-from django.conf import settings
-import stripe
-
-from django.conf import settings # new
-from django.http.response import JsonResponse # new
-from django.views.decorators.csrf import csrf_exempt # new
-from django.views.generic.base import TemplateView
 
 
 # @login_required(login_url="/login")
 def home(request):
     posts = Post.objects.all().order_by("title")
     if request.user:
-        # request.session["cart_count"] = Cart.objects.all().count()
-        request.session["cart_count"] = Cart.objects.filter(author__id=request.user.id).count()
+        request.session["cart_count"] = Cart.objects.all().count()
 
     if request.method == "POST":
         
@@ -67,7 +58,7 @@ def my_post(request):
             if post and (post.author == request.user or request.user.has_perm("main.delete_post")):
                 post.delete()
 
-    return render(request, 'main/my_post.html', {"posts": posts})
+    return render(request, 'main/mypost.html', {"posts": posts})
 
 
 @login_required(login_url="/login")
@@ -82,35 +73,30 @@ def create_post(request):
             return redirect("/mypost")
     else:
         form = PostForm()
+
     return render(request, 'main/create_post.html', {"form": form})
 
 
 @login_required(login_url="/login")
 @permission_required("main.change_post", login_url="/login", raise_exception=True)
 def edit_post(request, id):
-    post = Post.objects.get(id=id)  
+    print(id,"oooooooooo")
+    post = Post.objects.filter(id=id)
+    # for i in post:
+    #     print(i,"iiiiiiiiiiii11")
     return render(request, 'main/edit_post.html', {"post": post})
+
 
 @login_required(login_url="/login")
 @permission_required("main.add_post", login_url="/login", raise_exception=True)
 def update_post(request, id):
     post = Post.objects.get(id=id)  
-    form = PostForm(request.POST, instance=post)  
+    form = PostForm(request.POST, instance = post)  
     if form.is_valid():  
         form.save()  
         return redirect("/mypost")  
     return render(request, 'main/edit_post.html', {'post': post})  
 
-
-@login_required(login_url="/login")
-@permission_required("main.delete_post", login_url="/login", raise_exception=True)
-def delete_post(request, id):
-    data = {}
-    post = Post.objects.get(id=id)
-    if request.method == "POST":
-        post.delete()
-        return redirect("/mypost")
-    return render(request, 'main/delete_post.html', data)
 
 @login_required(login_url="/login")
 @permission_required("main.add_post", login_url="/login", raise_exception=True)
@@ -125,17 +111,7 @@ def my_cart(request):
     # total = Cart.objects.all().aggregate(Min('price'))
     # Product.objects.all().aggregate(Min('price'))
     if request.user:
-        request.session["cart_count"] = Cart.objects.filter(author__id=uid).count()
-    
-        orders = Cart.objects.filter(author__id=uid)
-        my_orders = []
-        for order in orders:
-            temp_dict = {}
-            temp_dict['order_title'] = order.post.title
-            temp_dict['order_price'] = str(order.post.amount)
-            my_orders.append(temp_dict)
-    
-        request.session['order_list'] = my_orders
+        request.session["cart_count"] = Cart.objects.all().count()
 
     if request.method == "POST":
         cart_post_id = request.POST.get("cart-post-id")
@@ -163,19 +139,29 @@ def my_cart(request):
 
     return render(request, "main/my_cart.html", {'cart': cart, "total":total})
 
-@csrf_exempt
-# @login_required(login_url="/login")
-# @permission_required("main.add_post", login_url="/login", raise_exception=True)
-def stripe_config(request):
-    if request.method == 'GET':
-        stripe_config = {'publicKey': settings.STRIPE_PUBLISHABLE_KEY}
-        return JsonResponse(stripe_config, safe=False)
-    
 
-def charge(request):
-    if request.method == "POST":
-        charge = stripe.Charge.create(
-        )
+# @login_required(login_url="/login")
+# @permission_required("main.change_post", login_url="/login", raise_exception=True)
+# def place_order(request):
+#     if request.user:
+#         request.session["cart_count"] = Cart.objects.all().count()
+#     uid = request.user.id
+#     cart = Cart.objects.filter(author__id=uid)
+#     print(cart)
+#     try:
+#         for crt in cart:
+#             order = Order.objects.create(
+#                 author = request.user,
+#                 post = crt.post.id,
+#                 address = "hyderabad",
+#                 phone = 9988776655,
+#                 )
+#             print(crt,"-crt---------")
+#             order.save()
+#         cart = Cart.objects.filter(author__id=uid).delete()
+#     except:
+#         pass
+#     return render(request, "main/place_order.html", {'cart': cart})
 
 
 @login_required(login_url="/login")
@@ -197,50 +183,3 @@ def sign_up(request):
         form = RegisterForm()
 
     return render(request, 'registration/sign_up.html', {"form": form})
-
-
-
-@csrf_exempt
-# @login_required(login_url="/login")
-# @permission_required("main.change_post", login_url="/login", raise_exception=True)
-def create_checkout_session(request):
-    if request.method == 'GET':
-        domain_url = 'http://127.0.0.1:8000/mycart/'
-        stripe.api_key = settings.STRIPE_SECRET_KEY
-
-        try:
-            # Create new Checkout Session for the order
-            # Other optional params include:
-            # [billing_address_collection] - to display billing address details on the page
-            # [customer] - if you have an existing Stripe Customer ID
-            # [payment_intent_data] - capture the payment later
-            # [customer_email] - prefill the email input in the form
-            # For full details see https://stripe.com/docs/api/checkout/sessions/create
-
-            # ?session_id={CHECKOUT_SESSION_ID} means the redirect will have the session ID set as a query param
-            orders_list = request.session['order_list']
-            line_item=[]
-            for order in orders_list:
-                temp_dict ={
-                            "price_data": {
-                                "currency": "inr",
-                                "product_data": {"name": order['order_title']},
-                                "unit_amount": int(float(order['order_price'])*100),
-                            },
-                            "quantity" : 1
-                            # "customer" : request.user.username
-                            }
-                line_item.append(temp_dict)
-            checkout_session = stripe.checkout.Session.create(
-                success_url='http://127.0.0.1:8000/myorder/',
-                cancel_url='http://127.0.0.1:8000/mycart/',
-                payment_method_types=['card'],
-                mode='payment',
-                line_items = line_item,
-
-            )
-
-            print(checkout_session,"[[[checkout_session]]]")
-            return JsonResponse({'sessionId': checkout_session['id']})
-        except Exception as e:
-            return JsonResponse({'error': str(e)})
